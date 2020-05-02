@@ -1,25 +1,37 @@
 import numpy as np
 import math
 import scipy.integrate as integrate
+import matplotlib.pyplot as plt
 
 
 def main():
-    n = 7
-    a = -math.pi
-    b = math.pi
+    n = 10+1
+    a = 0.1
+    b = 10
+    f = np.log
 
     inner_prod = polynomial_inner_prod_matrix(n, a, b)
-
-
-    print(standard_basis(n)[0])
 
     basis = gram_shmidt(
         standard_basis(n),
         inner_prod
     )
 
-    projection = project(math.cos, a, b, basis, inner_prod)
-    print(output_for_desmos(projection))
+    projection = project(f, a, b, basis, inner_prod)
+    # maclaurin = cosine_maclaurin(n)
+
+    plot_comparison(f, {
+        'Projection, n='+str(n-1): projection,
+        # 'Maclaurin': maclaurin
+    }, a, b)
+
+
+def cosine_maclaurin(n):
+    p = np.zeros(n)
+    for i in range(math.ceil(n/2)):
+        sign = (i % 2)*(-2)+1
+        p[2*i] = sign/math.factorial(2*i)
+    return p
 
 
 def standard_basis(n):
@@ -83,6 +95,27 @@ def output_for_desmos(pv):
         if i < len(pl)-1:
             text += " + "
     return text
+
+
+def plot_comparison(f, poly_approx, a, b):
+    x = np.linspace(a, b, 100)
+
+    plt.plot(x, f(x), label='Original')
+    lim = plt.ylim()
+
+    for key in poly_approx:
+        y = np.polynomial.Polynomial(poly_approx[key])
+        plt.plot(x, y(x), label=key, linestyle='dashed')
+
+    plt.ylim(lim)
+
+    # plt.xlabel('x label')
+    # plt.ylabel('y label')
+
+    plt.title("Polynomial Fits")
+
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
